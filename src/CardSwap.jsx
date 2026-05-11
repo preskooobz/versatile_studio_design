@@ -40,8 +40,34 @@ const CardSwap = ({
   onCardClick,
   skewAmount = 6,
   easing = 'elastic',
-  children
+  children,
+  responsiveProps = null
 }) => {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const mq = window.matchMedia?.('(max-width: 768px)');
+    const update = (e) => setIsMobile(e?.matches ?? !!mq?.matches);
+    if (mq) {
+      if (mq.addEventListener) mq.addEventListener('change', update);
+      else mq.addListener(update);
+      setIsMobile(mq.matches);
+    } else {
+      setIsMobile(window.innerWidth <= 768);
+    }
+    return () => {
+      if (mq) {
+        if (mq.removeEventListener) mq.removeEventListener('change', update);
+        else mq.removeListener(update);
+      }
+    };
+  }, []);
+
+  // Apply responsive overrides on mobile
+  const effWidth = isMobile && responsiveProps?.mobileWidth ? responsiveProps.mobileWidth : width;
+  const effHeight = isMobile && responsiveProps?.mobileHeight ? responsiveProps.mobileHeight : height;
+  const effCardDistance = isMobile ? cardDistance * 0.7 : cardDistance;
+  const effVerticalDistance = isMobile ? verticalDistance * 0.7 : verticalDistance;
   const config =
     easing === 'elastic'
       ? {
@@ -73,10 +99,11 @@ const CardSwap = ({
   const tlRef = useRef(null);
   const intervalRef = useRef();
   const container = useRef(null);
+  const containerVisibleRef = useRef(null);
 
   useEffect(() => {
     const total = refs.length;
-    refs.forEach((r, i) => placeNow(r.current, makeSlot(i, cardDistance, verticalDistance, total), skewAmount));
+    refs.forEach((r, i) => placeNow(r.current, makeSlot(i, effCardDistance, effVerticalDistance, total), skewAmount));
 
     const swap = () => {
       if (order.current.length < 2) return;
@@ -95,7 +122,7 @@ const CardSwap = ({
       tl.addLabel('promote', `-=${config.durDrop * config.promoteOverlap}`);
       rest.forEach((idx, i) => {
         const el = refs[idx].current;
-        const slot = makeSlot(i, cardDistance, verticalDistance, refs.length);
+        const slot = makeSlot(i, effCardDistance, effVerticalDistance, refs.length);
         tl.set(el, { zIndex: slot.zIndex }, 'promote');
         tl.to(
           el,
@@ -110,7 +137,7 @@ const CardSwap = ({
         );
       });
 
-      const backSlot = makeSlot(refs.length - 1, cardDistance, verticalDistance, refs.length);
+      const backSlot = makeSlot(refs.length - 1, effCardDistance, effVerticalDistance, refs.length);
       tl.addLabel('return', `promote+=${config.durMove * config.returnDelay}`);
       tl.call(
         () => {
@@ -166,7 +193,7 @@ const CardSwap = ({
       ? cloneElement(child, {
           key: i,
           ref: refs[i],
-          style: { width, height, ...(child.props.style ?? {}) },
+          style: { width: effWidth, height: effHeight, ...(child.props.style ?? {}) },
           onClick: e => {
             child.props.onClick?.(e);
             onCardClick?.(i);
@@ -178,8 +205,12 @@ const CardSwap = ({
   return (
     <div
       ref={container}
-      className="absolute bottom-0 right-0 transform translate-x-[5%] translate-y-[20%] origin-bottom-right perspective-[900px] overflow-visible max-[768px]:translate-x-[25%] max-[768px]:translate-y-[25%] max-[768px]:scale-[0.75] max-[480px]:translate-x-[25%] max-[480px]:translate-y-[25%] max-[480px]:scale-[0.55]"
-      style={{ width, height }}
+      className={`absolute transform origin-bottom-right perspective-[900px] overflow-visible ${
+        isMobile
+          ? 'bottom-auto top-0 right-0 translate-x-[15%] translate-y-[10%] opacity-90 max-[480px]:scale-[0.5] max-[480px]:translate-x-[20%] max-[480px]:translate-y-[5%]'
+          : 'bottom-0 right-0 translate-x-[5%] translate-y-[20%] max-[768px]:translate-x-[25%] max-[768px]:translate-y-[25%] max-[768px]:scale-[0.75]'
+      }`}
+      style={{ width: effWidth, height: effHeight }}
     >
       {rendered}
     </div>

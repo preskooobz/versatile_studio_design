@@ -1,5 +1,5 @@
 import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from 'ogl';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function debounce(func, wait) {
   let timeout;
@@ -463,11 +463,35 @@ export default function CircularGallery({
   scrollEase = 0.05
 }) {
   const containerRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
-    const app = new App(containerRef.current, { items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase });
+    const mq = window.matchMedia?.('(max-width: 768px)');
+    const update = (e) => setIsMobile(e?.matches ?? !!mq?.matches);
+    if (mq) {
+      if (mq.addEventListener) mq.addEventListener('change', update);
+      else mq.addListener(update);
+      setIsMobile(mq.matches);
+    } else {
+      setIsMobile(window.innerWidth <= 768);
+    }
+    return () => {
+      if (mq) {
+        if (mq.removeEventListener) mq.removeEventListener('change', update);
+        else mq.removeListener(update);
+      }
+    };
+  }, []);
+
+  // Reduce animation intensity on mobile
+  const effBend = isMobile ? bend * 0.5 : bend;
+  const effScrollSpeed = isMobile ? scrollSpeed * 0.8 : scrollSpeed;
+
+  useEffect(() => {
+    const app = new App(containerRef.current, { items, bend: effBend, textColor, borderRadius, font, scrollSpeed: effScrollSpeed, scrollEase });
     return () => {
       app.destroy();
     };
-  }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase]);
+  }, [items, effBend, textColor, borderRadius, font, effScrollSpeed, scrollEase, isMobile]);
   return <div className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing" ref={containerRef} />;
 }

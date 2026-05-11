@@ -42,16 +42,12 @@ const Hero = () => {
 							as="h1"
 							text={"Bienvenue dans Versatile Studio\nDesign"}
 							className="mb-6 text-9xl font-bold leading-tight text-white md:text-7xl"
-							 typingSpeed={75}
-                                pauseDuration={1500}
-                                showCursor
-                                cursorCharacter="|"
-                                texts={["Welcome to React Bits! Good to see you!","Build some amazing experiences!"]}
-                                deletingSpeed={50}
-                                variableSpeedEnabled={false}
-                                variableSpeedMin={60}
-                                variableSpeedMax={120}
-                                cursorBlinkDuration={0.5}
+							typingSpeed={75}
+							pauseDuration={1500}
+							showCursor
+							cursorCharacter="|"
+							deletingSpeed={50}
+							cursorBlinkDuration={0.5}
 						/>
 						<p className="mx-auto mb-8 max-w-2xl text-lg text-white/60 md:text-xl">
 							Créez des expériences numériques exceptionnelles avec nos services de design et développement

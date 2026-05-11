@@ -70,6 +70,27 @@ const BorderGlow = ({
   const [edgeProximity, setEdgeProximity] = useState(0);
   const [sweepActive, setSweepActive] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia?.('(max-width: 768px)');
+    const update = (e) => setIsMobile(e?.matches ?? !!mq?.matches);
+    if (mq) {
+      // modern browsers
+      if (mq.addEventListener) mq.addEventListener('change', update);
+      else mq.addListener(update);
+      setIsMobile(mq.matches);
+    } else {
+      setIsMobile(window.innerWidth <= 768);
+    }
+    return () => {
+      if (mq) {
+        if (mq.removeEventListener) mq.removeEventListener('change', update);
+        else mq.removeListener(update);
+      }
+    };
+  }, []);
+
   const getCenterOfElement = useCallback((el) => {
     const { width, height } = el.getBoundingClientRect();
     return [width / 2, height / 2];
@@ -129,6 +150,13 @@ const BorderGlow = ({
     });
   }, [animated]);
 
+  // Responsive adjustments: tone down effects on small screens
+  const effBorderRadius = isMobile ? Math.min(borderRadius, 18) : borderRadius;
+  const effGlowRadius = isMobile ? Math.min(glowRadius, 18) : glowRadius;
+  const effGlowIntensity = isMobile ? Math.min(glowIntensity, 0.6) : glowIntensity;
+  const effConeSpread = isMobile ? Math.min(coneSpread, 18) : coneSpread;
+  const effAnimated = animated && !isMobile;
+
   const colorSensitivity = edgeSensitivity + 20;
   const isVisible = isHovered || sweepActive;
   const borderOpacity = isVisible
@@ -167,8 +195,8 @@ const BorderGlow = ({
             ...borderBg,
           ].join(', '),
           opacity: borderOpacity,
-          maskImage: `conic-gradient(from ${angleDeg} at center, black ${coneSpread}%, transparent ${coneSpread + 15}%, transparent ${100 - coneSpread - 15}%, black ${100 - coneSpread}%)`,
-          WebkitMaskImage: `conic-gradient(from ${angleDeg} at center, black ${coneSpread}%, transparent ${coneSpread + 15}%, transparent ${100 - coneSpread - 15}%, black ${100 - coneSpread}%)`,
+          maskImage: `conic-gradient(from ${angleDeg} at center, black ${effConeSpread}%, transparent ${effConeSpread + 15}%, transparent ${100 - effConeSpread - 15}%, black ${100 - effConeSpread}%)`,
+          WebkitMaskImage: `conic-gradient(from ${angleDeg} at center, black ${effConeSpread}%, transparent ${effConeSpread + 15}%, transparent ${100 - effConeSpread - 15}%, black ${100 - effConeSpread}%)`,
           transition: isVisible ? 'opacity 0.25s ease-out' : 'opacity 0.75s ease-in-out',
         }} />
       {/* mesh gradient fill near edges */}
@@ -205,7 +233,7 @@ const BorderGlow = ({
       <span
         className="absolute pointer-events-none z-[1] rounded-[inherit]"
         style={{
-          inset: `${-glowRadius}px`,
+          inset: `${-effGlowRadius}px`,
           maskImage: `conic-gradient(from ${angleDeg} at center, black 2.5%, transparent 10%, transparent 90%, black 97.5%)`,
           WebkitMaskImage: `conic-gradient(from ${angleDeg} at center, black 2.5%, transparent 10%, transparent 90%, black 97.5%)`,
           opacity: glowOpacity,
@@ -215,8 +243,8 @@ const BorderGlow = ({
         <span
           className="absolute rounded-[inherit]"
           style={{
-            inset: `${glowRadius}px`,
-            boxShadow: buildBoxShadow(glowColor, glowIntensity),
+            inset: `${effGlowRadius}px`,
+            boxShadow: buildBoxShadow(glowColor, effGlowIntensity),
           }} />
       </span>
       <div className="flex flex-col relative overflow-auto z-[1]">

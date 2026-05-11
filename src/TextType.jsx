@@ -22,8 +22,10 @@ const TextType = ({
   onSentenceComplete,
   startOnVisible = false,
   reverseMode = false,
+  responsiveSpeed = true,
   ...props
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
   const [displayedText, setDisplayedText] = useState('');
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -31,6 +33,28 @@ const TextType = ({
   const [isVisible, setIsVisible] = useState(!startOnVisible);
   const cursorRef = useRef(null);
   const [containerNode, setContainerNode] = useState(null);
+
+  // Detect mobile for responsive speed
+  useEffect(() => {
+    const mq = window.matchMedia?.('(max-width: 768px)');
+    const update = (e) => setIsMobile(e?.matches ?? !!mq?.matches);
+    if (mq) {
+      if (mq.addEventListener) mq.addEventListener('change', update);
+      else mq.addListener(update);
+      setIsMobile(mq.matches);
+    } else {
+      setIsMobile(window.innerWidth <= 768);
+    }
+    return () => {
+      if (mq) {
+        if (mq.removeEventListener) mq.removeEventListener('change', update);
+        else mq.removeListener(update);
+      }
+    };
+  }, []);
+
+  const effectiveTypingSpeed = responsiveSpeed && isMobile ? typingSpeed * 1.5 : typingSpeed;
+  const effectiveDeletingSpeed = responsiveSpeed && isMobile ? deletingSpeed * 1.5 : deletingSpeed;
 
   const textArray = useMemo(() => (Array.isArray(text) ? text : [text]), [text]);
 
@@ -102,7 +126,7 @@ const TextType = ({
         } else {
           timeout = setTimeout(() => {
             setDisplayedText(prev => prev.slice(0, -1));
-          }, deletingSpeed);
+          }, effectiveDeletingSpeed);
         }
       } else {
         if (currentCharIndex < processedText.length) {
@@ -111,7 +135,7 @@ const TextType = ({
               setDisplayedText(prev => prev + processedText[currentCharIndex]);
               setCurrentCharIndex(prev => prev + 1);
             },
-            variableSpeed ? getRandomSpeed() : typingSpeed
+            variableSpeed ? getRandomSpeed() : effectiveTypingSpeed
           );
         } else if (textArray.length >= 1) {
           if (!loop && currentTextIndex === textArray.length - 1) return;

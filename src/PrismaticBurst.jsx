@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Renderer, Program, Mesh, Triangle, Texture } from 'ogl';
 
 const vertexShader = `#version 300 es
@@ -209,7 +209,8 @@ const PrismaticBurst = ({
   offset = { x: 0, y: 0 },
   hoverDampness = 0,
   rayCount,
-  mixBlendMode = 'lighten'
+  mixBlendMode = 'lighten',
+  hideOnMobile = false
 }) => {
   const containerRef = useRef(null);
   const programRef = useRef(null);
@@ -222,6 +223,18 @@ const PrismaticBurst = ({
   const isVisibleRef = useRef(true);
   const meshRef = useRef(null);
   const triRef = useRef(null);
+  
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const handleMediaChange = (e) => setIsMobile(e.matches);
+    
+    setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleMediaChange);
+    
+    return () => mediaQuery.removeEventListener('change', handleMediaChange);
+  }, []);
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -231,11 +244,12 @@ const PrismaticBurst = ({
   }, [hoverDampness]);
 
   useEffect(() => {
+    const effIntensity = isMobile ? intensity * 0.7 : intensity;
     const container = containerRef.current;
-    if (!container) return;
+    if (!container || (hideOnMobile && isMobile)) return;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const renderer = new Renderer({ dpr, alpha: false, antialias: false });
+    const renderer = new Renderer({ dpr: isMobile ? Math.min(dpr, 1) : dpr, alpha: false, antialias: false });
     rendererRef.current = renderer;
 
     const gl = renderer.gl;
@@ -268,8 +282,8 @@ const PrismaticBurst = ({
         uResolution: { value: [1, 1] },
         uTime: { value: 0 },
 
-        uIntensity: { value: 1 },
-        uSpeed: { value: 1 },
+      uIntensity: { value: 1 },
+      uSpeed: { value: 1 },
         uAnimType: { value: 0 },
         uMouse: { value: [0.5, 0.5] },
         uColorCount: { value: 0 },
@@ -346,6 +360,7 @@ const PrismaticBurst = ({
       sm[1] += (tgt[1] - sm[1]) * alpha;
       program.uniforms.uMouse.value = sm;
       program.uniforms.uTime.value = accumTime;
+      program.uniforms.uIntensity.value = effIntensity;
       renderer.render({ scene: meshRef.current });
       raf = requestAnimationFrame(update);
     };
@@ -391,7 +406,7 @@ const PrismaticBurst = ({
       triRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     const canvas = rendererRef.current?.gl?.canvas;
