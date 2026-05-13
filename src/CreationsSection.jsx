@@ -15,7 +15,7 @@ const items = [
 
 const CreationsSection = () => {
 	return (
-		<section className="w-screen bg-slate-950 px-6 md:px-10 py-20 md:py-28">
+		<section className="w-screen bg-slate-950 px-6 md:px-10 py-10 md:py-14">
 			<div className="max-w-7xl mx-auto mb-10 md:mb-14">
 				<p className="text-purple-300 uppercase tracking-[0.3em] text-xs mb-4">Nos réalisations</p>
 				<div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">

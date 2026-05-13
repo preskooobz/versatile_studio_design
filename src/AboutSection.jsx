@@ -2,7 +2,7 @@ import BorderGlow from './components/BorderGlow';
 
 const AboutSection = () => {
 	return (
-		<section id="a-propos" className="w-screen bg-slate-900 px-6 py-20 md:px-10 md:py-24">
+		<section id="a-propos" className="w-screen bg-slate-900 px-6 py-10 md:px-10 md:py-14">
 			<div className="mx-auto grid w-full max-w-7xl gap-10 md:grid-cols-[1.1fr_1fr] md:items-center">
 				<div>
 					<p className="mb-4 text-xs uppercase tracking-[0.3em] text-purple-300">A propos</p>

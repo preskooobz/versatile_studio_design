@@ -73,15 +73,15 @@ const Footer = () => {
 						<ul className="mt-4 space-y-3 text-sm text-white/70">
 							<li>
 								<a href="mailto:hello@versatilestudio.com" className="hover:text-purple-400 transition-colors">
-									hello@versatilestudio.com
+									versatilestudio@gmail.com
 								</a>
 							</li>
 							<li>
-								<a href="tel:+33100000000" className="hover:text-purple-400 transition-colors">
-									+33 (0) 1 00 00 00 00
+								<a href="tel:+221 787323273" className="hover:text-purple-400 transition-colors">
+									+221 787323273
 								</a>
 							</li>
-							<li className="text-white/70">Paris, France</li>
+							<li className="text-white/70">Dakar, Sénégal</li>
 						</ul>
 					</div>
 				</div>
